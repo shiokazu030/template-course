@@ -49,8 +49,7 @@ button:disabled {
 
 .intro-view,
 .quiz-view,
-.result-view,
-.form-view {
+.result-view {
   display: grid;
   gap: 18px;
 }
@@ -59,98 +58,11 @@ button:disabled {
 .question-card,
 .result-hero,
 .result-body,
-.cta-box,
-.form-hero,
-.form-question {
+.cta-box {
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(220, 233, 229, 0.92);
   border-radius: 8px;
   box-shadow: var(--shadow);
-}
-
-.form-hero {
-  display: grid;
-  gap: 14px;
-  padding: 26px 20px;
-}
-
-.form-progress {
-  margin: 0;
-  color: var(--muted);
-  font-weight: 800;
-}
-
-.question-list {
-  display: grid;
-  gap: 12px;
-}
-
-.form-question {
-  display: grid;
-  gap: 14px;
-  padding: 18px;
-}
-
-.form-question h2 {
-  display: grid;
-  grid-template-columns: 44px 1fr;
-  align-items: start;
-  gap: 10px;
-  margin: 0;
-  font-size: 1.05rem;
-  line-height: 1.55;
-}
-
-.form-question h2 span {
-  display: grid;
-  place-items: center;
-  min-height: 34px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 12%, white);
-  color: var(--accent-dark);
-  font-size: 0.8rem;
-}
-
-.form-options {
-  display: grid;
-  gap: 8px;
-}
-
-.form-option {
-  display: grid;
-  grid-template-columns: 34px 1fr;
-  align-items: center;
-  gap: 10px;
-  min-height: 52px;
-  padding: 10px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--ink);
-  text-align: left;
-}
-
-.form-option strong {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  aspect-ratio: 1;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 10%, white);
-  color: var(--accent-dark);
-}
-
-.form-option.is-selected,
-.form-option:hover {
-  border-color: color-mix(in srgb, var(--accent) 70%, white);
-  background: color-mix(in srgb, var(--accent) 8%, white);
-}
-
-.sticky-submit {
-  position: sticky;
-  bottom: 12px;
-  z-index: 2;
-  display: grid;
 }
 
 .hero-panel {
@@ -391,10 +303,6 @@ h1 {
   gap: 2px;
   margin-top: 8px;
   font-size: clamp(2rem, 12vw, 4rem);
-}
-
-.compact-result {
-  text-align: left;
 }
 
 .result-hero h1 span {
