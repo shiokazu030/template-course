@@ -2,8 +2,7 @@ import diagnosisData from "./data/diagnosisData.js";
 
 const app = document.querySelector("#app");
 const state = {
-  step: "intro",
-  currentIndex: 0,
+  step: "form",
   answers: {},
 };
 
@@ -18,17 +17,6 @@ function applyTheme() {
 
 function getType(typeId) {
   return diagnosisData.types.find((type) => type.id === typeId);
-}
-
-function renderTypeImage(type, className = "type-photo") {
-  const fallback = type.shortName || type.name.slice(0, 2);
-  const image = type.image || "";
-  return `
-    <div class="${className}" aria-label="${type.name}の画像枠" ${image ? "" : "data-empty='true'"}>
-      ${image ? `<img src="${image}" alt="${type.name}" onerror="this.remove(); this.parentElement.dataset.empty='true';" />` : ""}
-      <span>${fallback}</span>
-    </div>
-  `;
 }
 
 function getEmptyTypeScores() {
@@ -91,27 +79,20 @@ function pickResultType(scores) {
   return candidates[0];
 }
 
-function getProgressText() {
-  return `${Object.keys(state.answers).length}/${diagnosisData.questions.length}`;
-}
-
 function setAnswer(questionId, optionId) {
   state.answers[questionId] = optionId;
-  const isLast = state.currentIndex === diagnosisData.questions.length - 1;
-  state.currentIndex = isLast ? state.currentIndex : state.currentIndex + 1;
+  render();
+}
+
+function resetDiagnosis() {
+  state.step = "form";
+  state.answers = {};
   render();
 }
 
 function showResult() {
   if (Object.keys(state.answers).length !== diagnosisData.questions.length) return;
   state.step = "result";
-  render();
-}
-
-function resetDiagnosis() {
-  state.step = "intro";
-  state.currentIndex = 0;
-  state.answers = {};
   render();
 }
 
@@ -122,59 +103,46 @@ function shareOnX(type) {
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
-function renderIntro() {
+function renderForm() {
+  const answered = Object.keys(state.answers).length;
+  const canShowResult = answered === diagnosisData.questions.length;
+  const progress = Math.round((answered / diagnosisData.questions.length) * 100);
+
   app.innerHTML = `
-    <section class="intro-view">
-      <div class="hero-panel">
+    <section class="form-view">
+      <header class="form-hero">
         <p class="eyebrow">${diagnosisData.meta.eyebrow || "Diagnosis Quiz"}</p>
         <h1>${diagnosisData.meta.title}</h1>
         <p class="subtitle">${diagnosisData.meta.subtitle}</p>
-        <div class="type-strip" aria-hidden="true">
-          ${diagnosisData.types.map((type) => renderTypeImage(type, "mini-photo")).join("")}
-        </div>
-        <button class="primary-action" type="button" data-action="start">${diagnosisData.meta.startButton || "診断をはじめる"}</button>
-      </div>
-      <p class="disclaimer">${diagnosisData.meta.disclaimer}</p>
-    </section>
-  `;
-}
-
-function renderQuestion() {
-  const question = diagnosisData.questions[state.currentIndex];
-  const selected = state.answers[question.id];
-  const canShowResult = Object.keys(state.answers).length === diagnosisData.questions.length;
-  const progress = Math.round((Object.keys(state.answers).length / diagnosisData.questions.length) * 100);
-
-  app.innerHTML = `
-    <section class="quiz-view">
-      <header class="quiz-header">
-        <button class="ghost-action" type="button" data-action="intro">最初へ</button>
-        <div class="progress-copy">
-          <span>回答 ${getProgressText()}</span>
-          <strong>Q${state.currentIndex + 1}</strong>
-        </div>
+        <div class="progress-track" aria-hidden="true"><span style="width: ${progress}%"></span></div>
+        <p class="form-progress">回答 ${answered}/${diagnosisData.questions.length}</p>
       </header>
-      <div class="progress-track" aria-hidden="true"><span style="width: ${progress}%"></span></div>
-      <article class="question-card">
-        <p class="question-count">Question ${state.currentIndex + 1}</p>
-        <h2>${question.text}</h2>
-        <div class="options-list">
-          ${question.options
-            .map(
-              (option) => `
-                <button class="option-button ${selected === option.id ? "is-selected" : ""}" type="button" data-answer="${option.id}">
-                  <span class="option-id">${option.id}</span>
-                  <span>${option.text}</span>
-                </button>
-              `,
-            )
-            .join("")}
-        </div>
-      </article>
-      <footer class="quiz-controls">
-        <button class="secondary-action" type="button" data-action="prev" ${state.currentIndex === 0 ? "disabled" : ""}>戻る</button>
-        <button class="primary-action compact" type="button" data-action="result" ${canShowResult ? "" : "disabled"}>結果を見る</button>
-      </footer>
+      <section class="question-list">
+        ${diagnosisData.questions
+          .map(
+            (question, index) => `
+              <article class="form-question">
+                <h2><span>Q${index + 1}</span>${question.text}</h2>
+                <div class="form-options">
+                  ${question.options
+                    .map(
+                      (option) => `
+                        <button class="form-option ${state.answers[question.id] === option.id ? "is-selected" : ""}" type="button" data-question="${question.id}" data-answer="${option.id}">
+                          <strong>${option.id}</strong>
+                          <span>${option.text}</span>
+                        </button>
+                      `,
+                    )
+                    .join("")}
+                </div>
+              </article>
+            `,
+          )
+          .join("")}
+      </section>
+      <section class="sticky-submit">
+        <button class="primary-action" type="button" data-action="result" ${canShowResult ? "" : "disabled"}>結果を見る</button>
+      </section>
       <p class="disclaimer">${diagnosisData.meta.disclaimer}</p>
     </section>
   `;
@@ -187,8 +155,7 @@ function renderResult() {
 
   app.innerHTML = `
     <section class="result-view">
-      <article class="result-hero">
-        ${renderTypeImage(type, "result-photo")}
+      <article class="result-hero compact-result">
         <p class="eyebrow">${diagnosisData.meta.resultLabel || "Your type is"}</p>
         <h1><span>${type.name}</span><span>${diagnosisData.meta.resultSuffix || "タイプ"}</span></h1>
         <h2>${result.title}</h2>
@@ -205,12 +172,6 @@ function renderResult() {
         <div class="text-block">
           <h3>${result.ctaTitle || "次の一歩"}</h3>
           <p>${result.ctaText}</p>
-        </div>
-        <div class="matches">
-          <h3>相性のよいタイプ</h3>
-          <div class="match-list">
-            ${(result.matches || []).map((match) => `<span>${match}</span>`).join("")}
-          </div>
         </div>
       </section>
       <section class="cta-box">
@@ -229,8 +190,7 @@ function renderResult() {
 }
 
 function render() {
-  if (state.step === "intro") renderIntro();
-  if (state.step === "quiz") renderQuestion();
+  if (state.step === "form") renderForm();
   if (state.step === "result") renderResult();
 }
 
@@ -239,20 +199,10 @@ app.addEventListener("click", (event) => {
   const action = event.target.closest("[data-action]")?.dataset.action;
 
   if (answer) {
-    const question = diagnosisData.questions[state.currentIndex];
-    setAnswer(question.id, answer.dataset.answer);
+    setAnswer(answer.dataset.question, answer.dataset.answer);
     return;
   }
 
-  if (action === "start") {
-    state.step = "quiz";
-    render();
-  }
-  if (action === "intro") resetDiagnosis();
-  if (action === "prev") {
-    state.currentIndex = Math.max(0, state.currentIndex - 1);
-    render();
-  }
   if (action === "result") showResult();
   if (action === "share-x") shareOnX(getType(pickResultType(calculateScores())));
   if (action === "restart") resetDiagnosis();
